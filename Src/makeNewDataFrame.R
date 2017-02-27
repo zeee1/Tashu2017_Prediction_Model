@@ -1,6 +1,6 @@
 library(lubridate)
 
-createRealData <- function(TfilePath,WfilePath, rentStation){
+createRealData <- function(TfilePath,WfilePath,outfilePath, rentStation){
   #load Tashu Data(2015), make date time column, remove NA row.
   tashuData <- read.csv(TfilePath, stringsAsFactors = F)
   tashuData <- na.omit(tashuData)
@@ -19,12 +19,12 @@ createRealData <- function(TfilePath,WfilePath, rentStation){
   Locs <- tashuData$RENT_STATION == rentStation
   tashuData <- tashuData[Locs,]
   
-  #Make New DataFrame(resultDF) : datetime(2015-01-01 00:00 ~ 2015-06-30 23:00), rentMonth, rentHour, rentWeekday, Temperature, Humidity rentCount
+  #Make New DataFrame(resultDF) : datetime(2015-01-01 00:00 ~ 2015-06-30 23:00), rentMonth, rentHour, rentWeekday, Temperature, Humidity, rainfall,rentCount
   startDateTime <- ymd_hm(201501010000)
   endDateTime <- ymd_hm(201506302300)
   currentDateTime <- startDateTime
   
-  resultDF = data.frame(datetime = as.Date(character()),rentMonth = character(), rentHour = character(), rentWeekday = character(),temperature = integer(), humidity = integer(), rentCount = integer())
+  resultDF = data.frame(datetime = as.Date(character()),rentMonth = character(), rentHour = character(), rentWeekday = character(),temperature = integer(), humidity = integer(), rainfall = integer(), rentCount = integer())
   
   while (currentDateTime <= endDateTime){
     nextDateTime <- currentDateTime+hours(1)
@@ -33,6 +33,10 @@ createRealData <- function(TfilePath,WfilePath, rentStation){
     dataSubSet <- tashuData[tashuLoc,]
     
     weatherSubset <- weather2015Data[weather2015Data$DT == currentDateTime,]
+    
+    if(is.na(weatherSubset$Rainfall)){
+      weatherSubset$Rainfall <- 0
+    }
     
     season <- '0'
     
@@ -49,16 +53,16 @@ createRealData <- function(TfilePath,WfilePath, rentStation){
       season <- '4'#winter
     }
     
-    resultDF <- rbind(resultDF,data.frame(datetime = currentDateTime,season = season, rentMonth = toString(month(currentDateTime)),rentHour = toString(hour(currentDateTime)),rentWeekday = wday(currentDateTime, label = TRUE),temperature = weatherSubset$Temperature,humidity= weatherSubset$Humidity,rentCount = NROW(dataSubSet)))
+    resultDF <- rbind(resultDF,data.frame(datetime = currentDateTime,season = season, rentMonth = toString(month(currentDateTime)),rentHour = toString(hour(currentDateTime)),rentWeekday = wday(currentDateTime, label = TRUE),temperature = weatherSubset$Temperature,humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,rentCount = NROW(dataSubSet)))
     
     currentDateTime <- nextDateTime
   }
   
-  write.csv(resultDF, file = "C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station3\\tashu_stat3_2015Data.csv", row.names=FALSE)
+  write.csv(resultDF, file = outfilePath, row.names=FALSE)
   print("Complete Making real Data.")
 }
 
-createTrainData <- function(TfilePath,WfilePath1, WfilePath2, rentStation){
+createTrainData <- function(TfilePath,WfilePath1, WfilePath2,outfilePath, rentStation){
   #load Tashu 2 year Data(2013~2014) from January to June
   tashu2yearData1to6 <- read.csv(TfilePath, stringsAsFactors = F)
   tashu2yearData1to6 <- na.omit(tashu2yearData1to6)
@@ -83,12 +87,12 @@ createTrainData <- function(TfilePath,WfilePath1, WfilePath2, rentStation){
   #Collect 'rentStation' Data
   tashu2yearData1to6 <- tashu2yearData1to6[tashu2yearData1to6$RENT_STATION == rentStation,]
   
-  #Make Train DataFrame(trainData) : datetime(2013-01-01 00:00 ~ 2013-06-30 23:00, 2014-01-01 00:00 ~ 2014-06-30 23:00), rentMonth, rentHour, rentWeekday, Temperature, Humidity,rentCount
+  #Make Train DataFrame(trainData) : datetime(2013-01-01 00:00 ~ 2013-06-30 23:00, 2014-01-01 00:00 ~ 2014-06-30 23:00), rentMonth, rentHour, rentWeekday, Temperature, Humidity,rainfall, rentCount
   startDateTime <- ymd_hms(20130101000000)
   endDateTime <- ymd_hms(20130630230000)
   currentDateTime <- startDateTime
   
-  trainData <- data.frame(datetime = as.Date(character()),season = character(), rentMonth = character(), rentHour = character(),rentWeekday = character(),temperature = integer(), humidity = integer(), rentCount = integer())
+  trainData <- data.frame(datetime = as.Date(character()),season = character(), rentMonth = character(), rentHour = character(),rentWeekday = character(),temperature = integer(), humidity = integer(),rainfall = integer(), rentCount = integer())
   
   while (currentDateTime <= endDateTime){
     nextDateTime <- currentDateTime+hours(1)
@@ -97,6 +101,10 @@ createTrainData <- function(TfilePath,WfilePath1, WfilePath2, rentStation){
     trainSubSet <- tashu2yearData1to6[tashuLoc,]
     
     weatherSubset <- weather2013Data[weather2013Data$DT == currentDateTime,]
+    
+    if(is.na(weatherSubset$Rainfall)){
+      weatherSubset$Rainfall <- 0
+    }
   
     season <- '0'
     
@@ -113,7 +121,7 @@ createTrainData <- function(TfilePath,WfilePath1, WfilePath2, rentStation){
       season <- '4'#winter
     }
     
-    trainData <- rbind(trainData,data.frame(datetime = currentDateTime,season = season, rentMonth = toString(month(currentDateTime)),rentHour = toString(hour(currentDateTime)),rentWeekday = wday(currentDateTime, label = TRUE),temperature = weatherSubset$Temperature,humidity= weatherSubset$Humidity,rentCount = NROW(trainSubSet)))
+    trainData <- rbind(trainData,data.frame(datetime = currentDateTime,season = season, rentMonth = toString(month(currentDateTime)),rentHour = toString(hour(currentDateTime)),rentWeekday = wday(currentDateTime, label = TRUE),temperature = weatherSubset$Temperature,humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,rentCount = NROW(trainSubSet)))
     currentDateTime <- nextDateTime
   }
   
@@ -128,6 +136,10 @@ createTrainData <- function(TfilePath,WfilePath1, WfilePath2, rentStation){
     trainSubSet <- tashu2yearData1to6[tashuLoc,]
 
     weatherSubset <- weather2014Data[weather2014Data$DT == currentDateTime,]
+    
+    if(is.na(weatherSubset$Rainfall)){
+      weatherSubset$Rainfall <- 0
+    }
     season <- '0'
     
     if(month(currentDateTime)>= 3 && month(currentDateTime) < 6){
@@ -142,17 +154,17 @@ createTrainData <- function(TfilePath,WfilePath1, WfilePath2, rentStation){
     if(month(currentDateTime)>= 11 || month(currentDateTime) < 3){
       season <- '4'#winter
     }
-    trainData <- rbind(trainData,data.frame(datetime = currentDateTime,season = season,rentMonth = toString(month(currentDateTime)),rentHour = toString(hour(currentDateTime)),rentWeekday = wday(currentDateTime, label = TRUE),temperature = weatherSubset$Temperature,humidity= weatherSubset$Humidity,rentCount = NROW(trainSubSet)))
+    trainData <- rbind(trainData,data.frame(datetime = currentDateTime,season = season,rentMonth = toString(month(currentDateTime)),rentHour = toString(hour(currentDateTime)),rentWeekday = wday(currentDateTime, label = TRUE),temperature = weatherSubset$Temperature,humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,rentCount = NROW(trainSubSet)))
     
     currentDateTime <- nextDateTime
   }
   
-  write.csv(trainData, file = "C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station3\\tashu_stat3_trainData.csv", row.names=FALSE)
+  write.csv(trainData, file = outfilePath, row.names=FALSE)
   print("Complete Making Train Data.")
   
 }
 
-createTestData<-function(TfilePath,WfilePath, rentStation){
+createTestData<-function(TfilePath,WfilePath,outfilePath, rentStation){
   #load Tashu Data(2015), make date time column, remove NA row.
   tashu2015 <- read.csv(TfilePath, stringsAsFactors = F)
   tashu2015 <- na.omit(tashu2015)
@@ -170,12 +182,12 @@ createTestData<-function(TfilePath,WfilePath, rentStation){
   #Collect 'rentStation' Data
   tashu2015 <- tashu2015[tashu2015$RENT_STATION == rentStation,]
   
-  #Make New DataFrame(resultDF) : datetime(2015-01-01 00:00 ~ 2015-06-30 23:00), rentMonth, rentHour, rentWeekday, Temperature, Humidity,rentCount
+  #Make New DataFrame(resultDF) : datetime(2015-01-01 00:00 ~ 2015-06-30 23:00), rentMonth, rentHour, rentWeekday, Temperature, Humidity,rainfall, rentCount
   startDateTime <- ymd_hms(20150101000000)
   endDateTime <- ymd_hms(20150630230000)
   currentDateTime <- startDateTime
   
-  testData <- data.frame(datetime = as.Date(character()),season = character(),rentMonth = character(), rentHour = character(), rentWeekday = character(), temperature = integer(), humidity = integer(), rentCount = integer())
+  testData <- data.frame(datetime = as.Date(character()),season = character(),rentMonth = character(), rentHour = character(), rentWeekday = character(), temperature = integer(), humidity = integer(),rainfall = integer(), rentCount = integer())
   
   while (currentDateTime <= endDateTime){
     nextDateTime <- currentDateTime+hours(1)
@@ -184,6 +196,10 @@ createTestData<-function(TfilePath,WfilePath, rentStation){
     testSubset <- tashu2015[tashuLoc,]
     
     weatherSubset <- weather2015Data[weather2015Data$DT == currentDateTime,]
+    
+    if(is.na(weatherSubset$Rainfall)){
+      weatherSubset$Rainfall <- 0
+    }
     
     season <- '0'
     
@@ -200,15 +216,15 @@ createTestData<-function(TfilePath,WfilePath, rentStation){
       season <- '4'#winter
     }
     
-    testData <- rbind(testData,data.frame(datetime = currentDateTime,season = season,rentMonth = toString(month(currentDateTime)),rentHour = toString(hour(currentDateTime)),rentWeekday = wday(currentDateTime, label = TRUE), temperature = weatherSubset$Temperature,humidity = weatherSubset$Humidity ,rentCount = NA))
+    testData <- rbind(testData,data.frame(datetime = currentDateTime,season = season,rentMonth = toString(month(currentDateTime)),rentHour = toString(hour(currentDateTime)),rentWeekday = wday(currentDateTime, label = TRUE), temperature = weatherSubset$Temperature,humidity = weatherSubset$Humidity, rainfall = weatherSubset$Rainfall ,rentCount = NA))
     
     currentDateTime <- nextDateTime
   }
-  write.csv(testData, file = "C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station3\\tashu_stat3_testData.csv", row.names=FALSE)
+  write.csv(testData, file = outfilePath, row.names=FALSE)
   
   print("Complete Create Test Data")
 }
 
-createRealData('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu2015.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2015_weatherData.csv", 3)
-createTrainData('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu20132014Data1to6.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2013_weatherData.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2014_weatherData.csv',3)
-createTestData('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu2015.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2014_weatherData.csv', 3)
+createRealData('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu2015.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2015_weatherData.csv","C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_2015Data.csv", 55)
+createTrainData('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu20132014Data1to6.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2013_weatherData.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2014_weatherData.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_trainData.csv",55)
+createTestData('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu2015.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2015_weatherData.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_testData.csv", 55)
