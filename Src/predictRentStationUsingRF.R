@@ -10,8 +10,8 @@ library('randomForest')
 library('lubridate')
 
 #tashu2013Data for train, tashu2014Data for test
-tashu2013Data <- read.csv('data/tashu2013_1.csv', stringsAsFactors = F)
-tashu2014Data <- read.csv('data/tashu2014_1.csv', stringsAsFactors = F)
+tashu2013Data <- read.csv('../data/tashu2013_1.csv', stringsAsFactors = F)
+tashu2014Data <- read.csv('../data/tashu2014_1.csv', stringsAsFactors = F)
 
 tashu2013Data$rentDateTime <- ymd_hms(tashu2013Data$RENT_DATE)
 tashu2013Data$rentWeekday <- wday(tashu2013Data$rentDateTime)
