@@ -1,4 +1,4 @@
-#시각화
+#?챨?화
 library(ggplot2)
 library(ggthemes)
 library(scales)
@@ -12,20 +12,26 @@ library(lubridate)
 library(plyr)
 library(readr)
 
-#Feature 추출
+#Variation
+outputFilePath <- "../data/station55/tashu_stat55_Rent_predictionResult_2014.csv"
+trainDataFilePath <- "../data/station55/tashu_stat55_rentTrainData.csv"
+testDataFilePath <- ""
+rentMonth <- 5
+
+#Feature extract Function
 extractFeatures <- function(data){
   features <- c ("season","rentMonth","rentHour", "rentWeekday","temperature", "humidity", "rainfall")
   
   return(data[, features])
 }
 
-#load train data - rent Station : 3 rent date : 2013 01 01 ~ 2013 06 30
-trainData <- read.csv("C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station3\\tashu_stat3_trainData.csv", stringsAsFactors = F)
+#load train data 
+trainData <- read.csv(trainDataFilePath, stringsAsFactors = F)
 trainLocs <- year(trainData$datetime) == 2013
 trainData <- trainData[trainLocs,]
 
-#load test data - rent Station : 3 rent date : 2014 01 01 ~ 2014 06 30
-testData <- read.csv("C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station3\\tashu_stat3_trainData.csv", stringsAsFactors = F)
+#load test data
+testData <- read.csv(trainDataFilePath, stringsAsFactors = F)
 testLocs <- year(testData$datetime) == 2014
 testData <- testData[testLocs,]
 realData <- testData
@@ -45,11 +51,12 @@ for (i_month in monthList){
   testData[locs,"rentCount"] <- predict(rf, extractFeatures(testSubSet))
 }
 
+write.csv(testData, file = outputFilePath, row.names=FALSE)
 
-realData<- realData[realData$rentMonth == 6,]
-testData <- testData[testData$rentMonth == 6,]
+realData<- realData[realData$rentMonth == rentMonth,]
+testData <- testData[testData$rentMonth == rentMonth,]
 #compareDF <- data.frame(datatime = realData$datetime, weekday = wday(realData$datetime),realData_rentCount = realData$rentCount, predict_rentCount = testData$rentCount)
-trainData <- trainData[trainData$rentMonth == 6,]
+trainData <- trainData[trainData$rentMonth == rentMonth,]
 
 day_summary <- ddply(trainData,.(rentWeekday, rentHour),summarise, rentCount = mean(rentCount))
 ggplot(trainData, aes(x = rentHour, y = rentCount, colour = rentWeekday))+geom_point(data = day_summary, aes(group = rentWeekday))+geom_line(data = day_summary, aes(group=rentWeekday))+scale_x_discrete("Hour")+scale_y_continuous("Count")+theme_minimal()

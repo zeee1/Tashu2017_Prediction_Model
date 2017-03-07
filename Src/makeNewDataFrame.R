@@ -1,30 +1,30 @@
 library(lubridate)
 
 createRealData_rent <- function(TfilePath,WfilePath,outfilePath, rentStation){
-  #load Tashu Data(2015), make date time column, remove NA row.
+  #load Tashu Data, make date time column, remove NA row.
   tashuData <- read.csv(TfilePath, stringsAsFactors = F)
   tashuData <- na.omit(tashuData)
   tashuData$rentDateTime <- ymd_hms(tashuData$RENT_DATE)
   
-  #load weather Data(2015)
-  weather2015Data <- read.csv(WfilePath, stringsAsFactors = F)
-  weather2015Data$DT <- ymd_hm(weather2015Data$Datetime)
-  #Collect weather Data(20150101~20150630)
-  weather2015Data <- weather2015Data[weather2015Data$DT < ymd_hm(201507010000),]
+  #load weather Data
+  weatherData <- read.csv(WfilePath, stringsAsFactors = F)
+  weatherData$DT <- ymd_hm(weatherData$Datetime)
+  #Collect weather Data
+  weatherData <- weatherData[weatherData$DT < ymd_hm(201407010000),]
   
-  #remove xx:30 Data in weather2015Data
-  weather2015Data <- weather2015Data[minute(weather2015Data$DT) == 0,]
+  #remove xx:30 Data in weatherData
+  weatherData <- weatherData[minute(weatherData$DT) == 0,]
 
   #Collect 'rentStation' Data
   Locs <- tashuData$RENT_STATION == rentStation
   tashuData <- tashuData[Locs,]
   
-  #Make New DataFrame(resultDF) : datetime(2015-01-01 00:00 ~ 2015-06-30 23:00), rentMonth, rentHour, rentWeekday, Temperature, Humidity, rainfall,rentCount
-  startDateTime <- ymd_hm(201501010000)
-  endDateTime <- ymd_hm(201506302300)
+  #Make New DataFrame(resultDF) : datetime, rentMonth, rentHour, rentWeekday, Temperature, Humidity, rainfall,rentCount
+  startDateTime <- ymd_hm(201401010000)
+  endDateTime <- ymd_hm(201406302300)
   currentDateTime <- startDateTime
   
-  resultDF = data.frame(datetime = as.Date(character()),rentMonth = character(), rentHour = character(), rentWeekday = character(),temperature = integer(), humidity = integer(), rainfall = integer(), rentCount = integer())
+  resultDF = data.frame(datetime = as.Date(character()),season = character(),rentMonth = character(), rentHour = character(), rentWeekday = character(),temperature = integer(), humidity = integer(), rainfall = integer(), rentCount = integer())
   
   while (currentDateTime <= endDateTime){
     nextDateTime <- currentDateTime+hours(1)
@@ -32,7 +32,7 @@ createRealData_rent <- function(TfilePath,WfilePath,outfilePath, rentStation){
     tashuLoc  <- tashuData$rentDateTime >= currentDateTime & tashuData$rentDateTime < nextDateTime
     dataSubSet <- tashuData[tashuLoc,]
     
-    weatherSubset <- weather2015Data[weather2015Data$DT == currentDateTime,]
+    weatherSubset <- weatherData[weatherData$DT == currentDateTime,]
     
     if(is.na(weatherSubset$Rainfall)){
       weatherSubset$Rainfall <- 0
@@ -450,10 +450,10 @@ createTestData_return<-function(TfilePath,WfilePath,outfilePath, returnStation){
   print("Complete Create Test Data")
 }
 
-#createRealData_rent('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu2014_1.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2014_weatherData.csv","C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_2015Data.csv", 55)
+createRealData_rent("../data/tashu2014.csv","../data/weather/2014_weatherData.csv","C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_rent2014Data.csv", 55)
 #createTrainData_rent('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu20132014Data1to6.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2013_weatherData.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2014_weatherData.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_trainData.csv",55)
 #createTestData_rent('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu2015.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2015_weatherData.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_testData.csv", 55)
 
 #createRealData_return('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu2014.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2014_weatherData.csv", "C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_return2014Data.csv", 55)
 #createTrainData_return('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu20132014Data1to6.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2013_weatherData.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2014_weatherData.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_returnTrainData.csv",55)
-createTestData_return('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu2014.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2014_weatherData.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_returnTestData.csv", 55)
+#createTestData_return('C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\tashu2014.csv','C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\weather\\2014_weatherData.csv',"C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_returnTestData.csv", 55)
