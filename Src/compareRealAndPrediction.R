@@ -2,6 +2,7 @@ library(ggplot2)
 library(lubridate)
 library(plyr)
 library(readr)
+library(reshape2)
 
 #Variation
 station <- 55
@@ -32,8 +33,15 @@ ggplot(predictive_rentCountData, aes(x = rentHour, y = rentCount, colour = rentW
 day_summary <- ddply(real_returnCountData,.(returnWeekday, returnHour),summarise, returnCount = mean(returnCount))
 ggplot(real_rentCountData, aes(x = returnHour, y = returnCount, colour = returnWeekday))+geom_point(data = day_summary, aes(group = returnWeekday))+geom_line(data = day_summary, aes(group=returnWeekday))+scale_x_discrete("Hour")+scale_y_continuous("Count")+theme_minimal()
 
-predictive_returnCountData$rentWeekday <- wday(predictive_returnCountData$datetime, label = TRUE)
 day_summary <- ddply(predictive_returnCountData,.(returnWeekday, returnHour),summarise, returnCount = mean(returnCount))
 ggplot(predictive_returnCountData, aes(x = returnHour, y = returnCount, colour = returnWeekday))+geom_point(data = day_summary, aes(group = returnWeekday))+geom_line(data = day_summary, aes(group=returnWeekday))+scale_x_discrete("Hour")+scale_y_continuous("Count")+theme_minimal()
 
 #Todo : check the accuracy between real data and prediction data
+df = data.frame(datetime = real_rentCountData$datetime, RrentCount = real_rentCountData$rentCount, PrentCount = predictive_rentCountData$rentCount,RreturnCount = real_returnCountData$returnCount, PreturnCount = predictive_returnCountData$returnCount)
+df$rentError = df$RrentCount-df$PrentCount
+df$returnError = df$RreturnCount-df$PreturnCount
+
+avgOfrentError = mean(df$rentError)
+avgOfreturnError = mean(df$returnError)
+
+

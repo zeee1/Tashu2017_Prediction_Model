@@ -48,10 +48,10 @@ for (i_month in monthList){
 write.csv(testData, file = outputFilePath, row.names=FALSE)
 
 realData <- read.csv("C:\\Users\\miw52\\Desktop\\Tashu2017_Prediction_Model\\data\\station55\\tashu_stat55_return2014Data.csv", stringsAsFactors = F)
-realData<- realData[realData$returnMonth == 5,]
-testData <- testData[testData$returnMonth == 5,]
+#realData<- realData[realData$returnMonth == 5,]
+#testData <- testData[testData$returnMonth == 5,]
 #compareDF <- data.frame(datatime = realData$datetime, weekday = wday(realData$datetime),realData_rentCount = realData$rentCount, predict_rentCount = testData$rentCount)
-trainData <- trainData[trainData$returnMonth == 5,]
+#trainData <- trainData[trainData$returnMonth == 5,]
 
 day_summary <- ddply(trainData,.(returnWeekday, returnHour),summarise, returnCount = mean(returnCount))
 ggplot(trainData, aes(x = returnHour, y = returnCount, colour = returnWeekday))+geom_point(data = day_summary, aes(group = returnWeekday))+geom_line(data = day_summary, aes(group=returnWeekday))+scale_x_discrete("Hour")+scale_y_continuous("Count")+theme_minimal()
@@ -75,4 +75,4 @@ ggplot(featureImportance, aes(x=reorder(Feature, Importance), y=Importance)) +
   ylab("") + 
   ggtitle("Random Forest Feature Importance\n") +
   theme(plot.title=element_text(size=18))
-ggsave("2_feature_importance.png", p)
+#ggsave("2_feature_importance.png", p)
