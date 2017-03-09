@@ -1,7 +1,7 @@
 library(lubridate)
 
 #variation
-station <- 60
+stationList <- c(3, 55, 60)
 tashu2015DataFilePath <- "../data/tashu2015.csv" #target data file
 tashu20132014DataFilePath <- "../data/tashu20132014.csv" #Train data file
 weather2013DataFilePath <- "../data/weather/2013_weatherData.csv"
