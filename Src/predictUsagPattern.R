@@ -174,7 +174,6 @@ for (i_station in stationList){
   returnTestDF$returnCount <- NA
   
   #Todo : Write result of prediction into File. Save
-<<<<<<< HEAD
   monthList <- unique(rentTestDF$rentMonth)
   monthList <- monthList[!is.na(monthList)]
   
@@ -212,30 +211,7 @@ for (i_station in stationList){
   
   write.csv(rentTestDF, file = paste("stat",toString(i_station),"_ClassificationPredict_rentResult.csv",sep="",collapse = NULL), row.names=FALSE)
   write.csv(returnTestDF, file = paste("stat",toString(i_station),"_ClassificationPredict_returnResult.csv",sep="",collapse = NULL), row.names=FALSE)
-=======
-  monthList <- unique(testData$rentMonth)
-  monthList <- monthList[!is.na(monthList)]
-  
-  for (i_month in monthList){
-    locs <- rentTestDF$rentMonth == i_month
-    renttestSubSet <- rentTestDF[locs,]
-    
-    rf <- randomForest(extractFeatures(rentSubsetInTrain),rentSubsetInTrain$rentCount, ntree = 50)
-    rentTestDF[locs,"rentCount"] <- predict(rf, extractFeatures(renttestSubSet))
-    
-    locs <- returnTestDF$rentMonth == i_month
-    returntestSubSet <- rentTestDF[locs,]
-    
-    rf <- randomForest(extractFeatures(returnSubsetInTrain),returnSubsetInTrain$rentCount, ntree = 50)
-    returnTestDF[locs,"returnCount"] <- predict(rf, extractFeatures(returntestSubSet))
-  }
-  
-  rentPredictionFilePath <- paste("../data/station",toString(i_station),"/stat",toString(i_station),"_rentPredictResult.csv", sep="",collapse = NULL)
-  returnPredictionFilePath <- paste("../data/station",toString(i_station),"/stat",toString(i_station),"_returnPredictResult.csv", sep="",collapse = NULL)
-  write.csv(rentTestDF, file = rentPredictionFilePath, row.names=FALSE)
-  write.csv(returnTestDF, file = returnPredictionFilePath, row.names=FALSE)
-  
->>>>>>> 8f1048ec6bb1d4b62318d6d025f49cb908916150
+
   #Todo : Check Importance of features.
   #Todo : Check prediction accuracy.
   #Todo : Visualize real/prediction/train data by Month and Weekdays. Save.
