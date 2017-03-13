@@ -173,8 +173,44 @@ for (i_station in stationList){
   rentTestDF$rentCount <- NA
   returnTestDF$returnCount <- NA
   
-  
   #Todo : Write result of prediction into File. Save
+  monthList <- unique(rentTestDF$rentMonth)
+  monthList <- monthList[!is.na(monthList)]
+  
+  # Prediction 1 - Regression
+  for (i_month in monthList){
+    locs <- rentTestDF$rentMonth == i_month
+    testSubSet <- rentTestDF[locs,]
+    
+    rf <- randomForest(extractFeatures(rentTrainDF),rentTrainDF$rentCount, ntree = 50, mtry = 2)
+    rentTestDF[locs,"rentCount"] <- predict(rf, extractFeatures(testSubSet))
+    
+    locs <- returnTestDF$rentMonth == i_month
+    testSubSet <- returnTestDF[locs,]
+    
+    rf <- randomForest(extractFeatures(returnTrainDF),returnTrainDF$rentCount, ntree = 50, mtry = 2)
+    returnTestDF[locs,"returnCount"] <- predict(rf, extractFeatures(testSubSet))
+  }
+  
+  write.csv(rentTestDF, file = paste("stat",toString(i_station),"_RegressionPredict_rentResult.csv",sep="",collapse = NULL), row.names=FALSE)
+  write.csv(returnTestDF, file = paste("stat",toString(i_station),"_RegressionPredict_returnResult.csv",sep="",collapse = NULL), row.names=FALSE)
+  
+  for(i_month in monthList){
+    locs <- rentTestDF$rentMonth == i_month
+    testSubSet <- rentTestDF[locs,]
+    
+    rf <- randomForest(as.factor(rentCount)~rentMonth+rentWeekday+temperature+humidity+rentHour+rainfall+season,data=rentTestDF, ntree = 50, mtry = 2)
+    rentTestDF[locs,"rentCount"] <- predict(rf, extractFeatures(testSubSet))
+    
+    locs <- returnTestDF$rentMonth == i_month
+    testSubSet <- returnTestDF[locs,]
+    
+    rf <- randomForest(as.factor(returnCount)~rentMonth+rentWeekday+temperature+humidity+rentHour+rainfall+season,data=returnTrainDF, ntree = 50, mtry = 2)
+    returnTestDF[locs,"returnCount"] <- predict(rf, extractFeatures(testSubSet))
+  }
+  
+  write.csv(rentTestDF, file = paste("stat",toString(i_station),"_ClassificationPredict_rentResult.csv",sep="",collapse = NULL), row.names=FALSE)
+  write.csv(returnTestDF, file = paste("stat",toString(i_station),"_ClassificationPredict_returnResult.csv",sep="",collapse = NULL), row.names=FALSE)
   #Todo : Check Importance of features.
   #Todo : Check prediction accuracy.
   #Todo : Visualize real/prediction/train data by Month and Weekdays. Save.
