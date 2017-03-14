@@ -42,10 +42,8 @@ weather2014Data <- weather2014Data[minute(weather2014Data$DT) == 0,]
 weather2015Data <- weather2015Data[minute(weather2015Data$DT) == 0,]
 
 festivalData <- read.csv("../data/festival_info.csv", stringsAsFactors = F)
-#festivalData$nearStation <- strsplit(festivalData$nearStation, ",")
 
-testlocs <- grepl(festivalData$nearStation, toString(3)) == TRUE
-festivalData <- festivalData[testlocs,]
+
 
 
 #Feature extract Function
