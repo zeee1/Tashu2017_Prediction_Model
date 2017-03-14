@@ -34,9 +34,19 @@ tashu2015Data$returnDateTime <- ymd_hms(tashu2015Data$RETURN_DATE)
 weather2013Data <- read.csv("../data/weather/2013_weatherData.csv", stringsAsFactors = F)
 weather2014Data <- read.csv("../data/weather/2014_weatherData.csv", stringsAsFactors = F)
 weather2015Data <- read.csv("../data/weather/2015_weatherData.csv", stringsAsFactors = F)
+weather2013Data$DT <- ymd_hm(weather2013Data$Datetime)
+weather2014Data$DT <- ymd_hm(weather2014Data$Datetime)
+weather2015Data$DT <- ymd_hm(weather2015Data$Datetime)
 weather2013Data <- weather2013Data[minute(weather2013Data$DT) == 0,]
 weather2014Data <- weather2014Data[minute(weather2014Data$DT) == 0,]
 weather2015Data <- weather2015Data[minute(weather2015Data$DT) == 0,]
+
+festivalData <- read.csv("../data/festival_info.csv", stringsAsFactors = F)
+#festivalData$nearStation <- strsplit(festivalData$nearStation, ",")
+
+testlocs <- grepl(festivalData$nearStation, toString(3)) == TRUE
+festivalData <- festivalData[testlocs,]
+
 
 #Feature extract Function
 extractFeatures <- function(data){
@@ -177,23 +187,6 @@ for (i_station in stationList){
   monthList <- unique(rentTestDF$rentMonth)
   monthList <- monthList[!is.na(monthList)]
   
-  # Prediction 1 - Regression
-  for (i_month in monthList){
-    locs <- rentTestDF$rentMonth == i_month
-    testSubSet <- rentTestDF[locs,]
-    
-    rf <- randomForest(extractFeatures(rentTrainDF),rentTrainDF$rentCount, ntree = 50, mtry = 2)
-    rentTestDF[locs,"rentCount"] <- predict(rf, extractFeatures(testSubSet))
-    
-    locs <- returnTestDF$rentMonth == i_month
-    testSubSet <- returnTestDF[locs,]
-    
-    rf <- randomForest(extractFeatures(returnTrainDF),returnTrainDF$rentCount, ntree = 50, mtry = 2)
-    returnTestDF[locs,"returnCount"] <- predict(rf, extractFeatures(testSubSet))
-  }
-  
-  write.csv(rentTestDF, file = paste("stat",toString(i_station),"_RegressionPredict_rentResult.csv",sep="",collapse = NULL), row.names=FALSE)
-  write.csv(returnTestDF, file = paste("stat",toString(i_station),"_RegressionPredict_returnResult.csv",sep="",collapse = NULL), row.names=FALSE)
   
   for(i_month in monthList){
     locs <- rentTestDF$rentMonth == i_month
