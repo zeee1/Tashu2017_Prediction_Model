@@ -43,17 +43,14 @@ testData$rentWeekday <- wday(testData$datetime, label = TRUE)
 monthList <- unique(testData$rentMonth)
 monthList <- monthList[!is.na(monthList)]
 
+rf <- randomForest(as.factor(rentCount)~rentMonth+rentWeekday+temperature+humidity+rentHour+rainfall+season,data=trainData, ntree = 50, mtry = 2)
 for (i_month in monthList){
-  #locs <- testData$rentMonth == i_month
-  #testSubSet <- testData[locs,]
-  
-  #rf <- randomForest(extractFeatures(trainData),trainData$rentCount, ntree = 50)
-  #testData[locs,"rentCount"] <- predict(rf, extractFeatures(testSubSet))
-  
   locs <- testData$rentMonth == i_month
   testSubSet <- testData[locs,]
   
-  rf <- randomForest(as.factor(rentCount)~rentMonth+rentWeekday+temperature+humidity+rentHour+rainfall+season,data=trainData, ntree = 50, mtry = 2)
+  #rf <- randomForest(extractFeatures(trainData),trainData$rentCount, ntree = 50, mtry = 2)
+  #testData[locs,"rentCount"] <- predict(rf, extractFeatures(testSubSet))
+  
   testData[locs,"rentCount"] <- predict(rf, extractFeatures(testSubSet))
 }
 
@@ -65,7 +62,11 @@ testData <- testData[testData$rentMonth == rentMonth,]
 trainData <- trainData[trainData$rentMonth == rentMonth,]
 
 day_summary <- ddply(trainData,.(rentWeekday, rentHour),summarise, rentCount = mean(rentCount))
-ggplot(trainData, aes(x = rentHour, y = rentCount, colour = rentWeekday))+geom_point(data = day_summary, aes(group = rentWeekday))+geom_line(data = day_summary, aes(group=rentWeekday))+scale_x_discrete("Hour")+scale_y_continuous("Count")+theme_minimal()
+ggplot(trainData, aes(x = rentHour, y = rentCount, colour = rentWeekday))+
+  geom_point(data = day_summary, aes(group = rentWeekday))+
+  geom_line(data = day_summary, aes(group=rentWeekday))+
+  scale_x_discrete("Hour")+scale_y_continuous("Count")+theme_minimal()
+ggsave("aa.png")
 
 day_summary <- ddply(testData,.(rentWeekday, rentHour),summarise, rentCount = mean(rentCount))
 ggplot(testData, aes(x = rentHour, y = rentCount, colour = rentWeekday))+geom_point(data = day_summary, aes(group = rentWeekday))+geom_line(data = day_summary, aes(group=rentWeekday))+scale_x_discrete("Hour")+scale_y_continuous("Count")+theme_minimal()
@@ -75,8 +76,13 @@ day_summary <- ddply(realData,.(rentWeekday, rentHour),summarise, rentCount = me
 ggplot(realData, aes(x = rentHour, y = rentCount, colour = rentWeekday))+geom_point(data = day_summary, aes(group = rentWeekday))+geom_line(data = day_summary, aes(group=rentWeekday))+scale_x_discrete("Hour")+scale_y_continuous("Count")+theme_minimal()
 
 #rf <- randomForest(extractFeatures(trainData),trainData$rentCount, ntree = 50, importance=TRUE)
-rf <- randomForest(as.factor(rentCount)~rentMonth+rentWeekday+temperature+humidity+rentHour+rainfall+season,data=trainData, ntree = 50, mtry = 2, importance = TRUE)
+#imp <- importance(rf, type=1)
+#print(rf$confusion)
+#featureImportance <- data.frame(Feature=row.names(imp), Importance=imp[,1])
+
+rf <- randomForest(as.factor(rentCount)~rentMonth+rentWeekday+temperature+humidity+rentHour+rainfall+season,data=trainData, ntree = 50, mtry = 2,importance=TRUE)
 imp <- importance(rf, type=1)
+print(rf$confusion)
 featureImportance <- data.frame(Feature=row.names(imp), Importance=imp[,1])
 
 ggplot(featureImportance, aes(x=reorder(Feature, Importance), y=Importance)) +
@@ -87,8 +93,4 @@ ggplot(featureImportance, aes(x=reorder(Feature, Importance), y=Importance)) +
   ylab("") + 
   ggtitle("Random Forest Feature Importance\n") +
   theme(plot.title=element_text(size=18))
-
-# Show model error
-plot(rf, ylim=c(0,30))
-legend('topright', colnames(rf$err.rate), col=1:3, fill=1:3)
 ggsave("2_feature_importance.png", p)
