@@ -23,11 +23,11 @@ for (i_station in 1:144){
   
   rentTrainDF <- data.frame(datetime = as.Date(character()),season = character(), 
                             rentMonth = character(), rentHour = character(),rentWeekday = character(),
-                            temperature = integer(),humidity = integer(),rainfall = integer(), 
+                            temperature = integer(),humidity = integer(),rainfall = integer(),isFestival = character(),
                             rentCount = integer())
   
   returnTrainDF <- data.frame(datetime = as.Date(character()),season = character(), 
-                              returnMonth = character(),returnHour = character(),returnWeekday = character(),
+                              returnMonth = character(),returnHour = character(),returnWeekday = character(),isFestival = character(), 
                               temperature = integer(), humidity = integer(),rainfall = integer(), 
                               returnCount = integer())
   
@@ -66,12 +66,21 @@ for (i_station in 1:144){
       season <- '4'#winter
     }
     
+    isFestival <- '0'
+    tmpFestData <- festivalData[festivalData$startDate <= currentDateTime & festivalData$endDate > currentDateTime,]
+    nearStatList <- strsplit(tmpFestData$nearStation,",")
+    for (i in nearStatList){
+      if(toString(i_station) %in% i){
+        isFestival <-'1'
+      }
+    }
+    
     rentTrainDF <- rbind(rentTrainDF,data.frame(datetime = currentDateTime,season = season, 
                                                 rentMonth = toString(month(currentDateTime)),
                                                 rentHour = toString(hour(currentDateTime)),
                                                 rentWeekday = wday(currentDateTime, label = TRUE),
                                                 temperature = weatherSubset$Temperature,
-                                                humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,
+                                                humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
                                                 rentCount = NROW(rentTimeSubset)))
     
     returnTrainDF <- rbind(returnTrainDF,data.frame(datetime = currentDateTime,season = season, 
@@ -79,10 +88,13 @@ for (i_station in 1:144){
                                                     returnHour = toString(hour(currentDateTime)),
                                                     returnWeekday = wday(currentDateTime, label = TRUE),
                                                     temperature = weatherSubset$Temperature,
-                                                    humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,
+                                                    humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
                                                     returnCount = NROW(returnTimeSubset)))
     
     currentDateTime <- nextDateTime
   }
+  
+  assign(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL), rentTrainDF)
+  assign(paste("stat",toString(i_station),"_returnTrainDF",sep="",collapse = NULL), rentTrainDF)
   print(paste(toString(i_station)," Train data frame was created.", sep="", collapse = NULL))
 }

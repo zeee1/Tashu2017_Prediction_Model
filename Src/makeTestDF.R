@@ -36,10 +36,10 @@ for (i_station in 1:144){
   
   rentTestDF <- data.frame(datetime = as.Date(character()),season = character(),rentMonth = character(), rentHour = character(), 
                            rentWeekday = character(), temperature = integer(), 
-                           humidity = integer(),rainfall = integer(), rentCount = integer())
+                           humidity = integer(),rainfall = integer(),isFestival = character(), rentCount = integer())
   returnTestDF <- data.frame(datetime = as.Date(character()),season = character(),returnMonth = character(), returnHour = character(), 
                              returnWeekday = character(), temperature = integer(), 
-                             humidity = integer(),rainfall = integer(), returnCount = integer())
+                             humidity = integer(),rainfall = integer(),isFestival = character(), returnCount = integer())
   
   while (currentDateTime <= endDateTime){
     nextDateTime <- currentDateTime+hours(1)
@@ -69,35 +69,42 @@ for (i_station in 1:144){
       season <- '4'#winter
     }
     
+    isFestival <- '0'
+    tmpFestData <- festivalData[festivalData$startDate <= currentDateTime & festivalData$endDate > currentDateTime,]
+    nearStatList <- strsplit(tmpFestData$nearStation,",")
+    for (i in nearStatList){
+      if(toString(i_station) %in% i){
+        isFestival <-'1'
+      }
+    }
+    
     rentTestDF <- rbind(rentTestDF,data.frame(datetime = currentDateTime,season = season, 
                                               rentMonth = toString(month(currentDateTime)),
                                               rentHour = toString(hour(currentDateTime)),
                                               rentWeekday = wday(currentDateTime, label = TRUE),
                                               temperature = weatherSubset$Temperature,
-                                              humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,
+                                              humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
                                               RrentCount = NROW(rentTimeSubset), PrentCount = NA))
     returnTestDF <- rbind(returnTestDF,data.frame(datetime = currentDateTime,season = season, 
                                                   returnMonth = toString(month(currentDateTime)),
                                                   returnHour = toString(hour(currentDateTime)),
                                                   returnWeekday = wday(currentDateTime, label = TRUE),
                                                   temperature = weatherSubset$Temperature,
-                                                  humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,
+                                                  humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
                                                   RreturnCount = NROW(returnTimeSubset), PreturnCount = NA))
     
     currentDateTime <- nextDateTime
   }
   
-  print("Creating Test DF completed")
-  
   # Write result of prediction into File. Save
   monthList <- unique(rentTestDF$rentMonth)
   monthList <- monthList[!is.na(monthList)]
   
-  rent_rf <- randomForest(extractRentFeatures(rentTrainDF),
-                          rentTrainDF$rentCount, ntree = 50, mtry = 2, importance = TRUE)
+  rent_rf <- randomForest(extractRentFeatures(get(paste("stat",toString(i_station),"_rentTrainDF.csv",sep="",collapse = NULL))),
+                          get(paste("stat",toString(i_station),"_rentTrainDF.csv",sep="",collapse = NULL))$rentCount, ntree = 50, mtry = 2, importance = TRUE)
   
-  return_rf <- randomForest(extractReturnFeatures(returnTrainDF),
-                            returnTrainDF$returnCount, ntree = 50, mtry = 2, importance = TRUE)
+  return_rf <- randomForest(extractReturnFeatures(get(paste("stat",toString(i_station),"_refurTrainDF.csv",sep="",collapse = NULL))),
+                            get(paste("stat",toString(i_station),"_rentTrainDF.csv",sep="",collapse = NULL))$returnCount, ntree = 50, mtry = 2, importance = TRUE)
   
   # Prediction - Regression
   for (i_month in monthList){
@@ -114,4 +121,6 @@ for (i_station in 1:144){
   
   assign(paste("stat", toString(i_station), "_rentTestDF", sep="",collapse = NULL), rentTestDF)
   assign(paste("stat", toString(i_station), "_returnTestDF", sep="",collapse = NULL), returnTestDF)
+  
+  print(paste(toString(i_station)," Test/Prediction result was created."))
 }
