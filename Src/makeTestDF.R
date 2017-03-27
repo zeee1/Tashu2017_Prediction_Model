@@ -14,13 +14,13 @@ library(readr)
 
 #Feature extract Function
 extractRentFeatures <- function(data){
-  features <- c ("season","rentMonth","rentHour", "rentWeekday","temperature", "humidity", "rainfall")
+  features <- c ("season","rentMonth","rentHour", "rentWeekday","temperature", "humidity", "rainfall","isFestival")
   
   return(data[, features])
 }
 
 extractReturnFeatures <- function(data){
-  features <- c ("season","returnMonth","returnHour", "returnWeekday","temperature", "humidity", "rainfall")
+  features <- c ("season","returnMonth","returnHour", "returnWeekday","temperature", "humidity", "rainfall", "isFestival")
   
   return(data[, features])
 }
@@ -100,11 +100,11 @@ for (i_station in 1:144){
   monthList <- unique(rentTestDF$rentMonth)
   monthList <- monthList[!is.na(monthList)]
   
-  rent_rf <- randomForest(extractRentFeatures(get(paste("stat",toString(i_station),"_rentTrainDF.csv",sep="",collapse = NULL))),
-                          get(paste("stat",toString(i_station),"_rentTrainDF.csv",sep="",collapse = NULL))$rentCount, ntree = 50, mtry = 2, importance = TRUE)
+  rent_rf <- randomForest(extractRentFeatures(get(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL))),
+                          get(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL))$rentCount, ntree = 50, mtry = 2, importance = TRUE)
   
-  return_rf <- randomForest(extractReturnFeatures(get(paste("stat",toString(i_station),"_refurTrainDF.csv",sep="",collapse = NULL))),
-                            get(paste("stat",toString(i_station),"_rentTrainDF.csv",sep="",collapse = NULL))$returnCount, ntree = 50, mtry = 2, importance = TRUE)
+  return_rf <- randomForest(extractReturnFeatures(get(paste("stat",toString(i_station),"_returnTrainDF",sep="",collapse = NULL))),
+                            get(paste("stat",toString(i_station),"_returnTrainDF",sep="",collapse = NULL))$returnCount, ntree = 50, mtry = 2, importance = TRUE)
   
   # Prediction - Regression
   for (i_month in monthList){
