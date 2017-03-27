@@ -33,7 +33,8 @@ weather2014Data <- weather2014Data[minute(weather2014Data$DT) == 0,]
 weather2015Data <- weather2015Data[minute(weather2015Data$DT) == 0,]
 
 festivalData <- read.csv("../data/festival_info.csv", stringsAsFactors = F)
-
+festivalData$startDate <- ymd_hm(festivalData$startDate)
+festivalData$endDate <- ymd_hm(festivalData$endDate)
 
 #Variation
 #samplestationList <- c(1,3,9,17,21,24,55, 118, 122,123, 127, 143)

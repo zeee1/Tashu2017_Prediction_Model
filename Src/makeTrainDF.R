@@ -12,7 +12,7 @@ library(lubridate)
 library(plyr)
 library(readr)
 
-for (i_station in 1:144){
+for (i_station in 134:144){
   #Make Train DataFrame(20130101~20141231) : rentTrainDF, returnTrainDF
   #rentSubsetInTrain <- tashu20132014Data[tashu20132014Data$RENT_STATION == i_station,]
   returnSubsetInTrain <- tashu20132014Data[tashu20132014Data$RETURN_STATION == i_station,]

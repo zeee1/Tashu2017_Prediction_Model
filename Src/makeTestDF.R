@@ -108,7 +108,7 @@ for (i_station in 1:144){
   
   # Prediction - Regression
   for (i_month in monthList){
-    locs <- rentTestDF$rentMonth == i_month
+    locs <- get()$rentMonth == i_month
     testSubSet <- rentTestDF[locs,]
     
     rentTestDF[locs,"PrentCount"] <- predict(rent_rf, extractRentFeatures(testSubSet))
