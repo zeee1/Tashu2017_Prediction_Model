@@ -34,6 +34,7 @@ for (i_station in 1:144){
   endDateTime <- ymd_hms(20151231230000)
   currentDateTime <- startDateTime
   
+  
   rentTestDF <- data.frame(datetime = as.Date(character()),season = character(),rentMonth = character(), rentHour = character(), 
                            rentWeekday = character(), temperature = integer(), 
                            humidity = integer(),rainfall = integer(),isFestival = character(), rentCount = integer())
@@ -99,6 +100,11 @@ for (i_station in 1:144){
   # Write result of prediction into File. Save
   monthList <- unique(rentTestDF$rentMonth)
   monthList <- monthList[!is.na(monthList)]
+  
+  if(length(levels(rentTestDF$isFestival)) == 1 | length(levels(returnTestDF$isFestival))==1){
+    levels(rentTestDF$isFestival) <- levels(get(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL))$isFestival)
+    levels(returnTestDF$isFestival) <- levels(get(paste("stat",toString(i_station),"_returnTrainDF",sep="",collapse = NULL))$isFestival)
+  }
   
   rent_rf <- randomForest(extractRentFeatures(get(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL))),
                           get(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL))$rentCount, ntree = 50, mtry = 2, importance = TRUE)
