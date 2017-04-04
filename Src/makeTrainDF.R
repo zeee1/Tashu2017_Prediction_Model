@@ -12,19 +12,20 @@ library(lubridate)
 library(plyr)
 library(readr)
 
+
 for (i_station in 134:144){
   #Make Train DataFrame(20130101~20141231) : rentTrainDF, returnTrainDF
-  #rentSubsetInTrain <- tashu20132014Data[tashu20132014Data$RENT_STATION == i_station,]
+  rentSubsetInTrain <- tashu20132014Data[tashu20132014Data$RENT_STATION == i_station,]
   returnSubsetInTrain <- tashu20132014Data[tashu20132014Data$RETURN_STATION == i_station,]
   
   startDateTime <- ymd_hms(20130101000000)
   endDateTime <- ymd_hms(20141231230000)
   currentDateTime <- startDateTime
   
-  #rentTrainDF <- data.frame(datetime = as.Date(character()),season = character(), 
-  #                          rentMonth = character(), rentHour = character(),rentWeekday = character(),
-  #                          temperature = integer(),humidity = integer(),rainfall = integer(),isFestival = character(),
-  #                          rentCount = integer())
+  rentTrainDF <- data.frame(datetime = as.Date(character()),season = character(), 
+                            rentMonth = character(), rentHour = character(),rentWeekday = character(),
+                            temperature = integer(),humidity = integer(),rainfall = integer(),isFestival = character(),
+                            rentCount = integer())
   
   returnTrainDF <- data.frame(datetime = as.Date(character()),season = character(), 
                               returnMonth = character(),returnHour = character(),returnWeekday = character(),isFestival = character(), 
@@ -34,7 +35,7 @@ for (i_station in 134:144){
   while (currentDateTime <= endDateTime){
     nextDateTime <- currentDateTime+hours(1)
     
-    #rentTimeSubset <- rentSubsetInTrain[rentSubsetInTrain$rentDateTime >= currentDateTime & rentSubsetInTrain$rentDateTime < nextDateTime,]
+    rentTimeSubset <- rentSubsetInTrain[rentSubsetInTrain$rentDateTime >= currentDateTime & rentSubsetInTrain$rentDateTime < nextDateTime,]
     returnTimeSubset <- returnSubsetInTrain[returnSubsetInTrain$returnDateTime >= currentDateTime & returnSubsetInTrain$returnDateTime < nextDateTime,]
     
     weatherSubset <- data.frame()
@@ -75,13 +76,13 @@ for (i_station in 134:144){
       }
     }
     
-    #rentTrainDF <- rbind(rentTrainDF,data.frame(datetime = currentDateTime,season = season, 
-    #                                            rentMonth = toString(month(currentDateTime)),
-    #                                            rentHour = toString(hour(currentDateTime)),
-    #                                            rentWeekday = wday(currentDateTime, label = TRUE),
-    #                                            temperature = weatherSubset$Temperature,
-    #                                            humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
-    #                                            rentCount = NROW(rentTimeSubset)))
+    rentTrainDF <- rbind(rentTrainDF,data.frame(datetime = currentDateTime,season = season, 
+                                                rentMonth = toString(month(currentDateTime)),
+                                                rentHour = toString(hour(currentDateTime)),
+                                                rentWeekday = wday(currentDateTime, label = TRUE),
+                                                temperature = weatherSubset$Temperature,
+                                                humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
+                                                rentCount = NROW(rentTimeSubset)))
     
     returnTrainDF <- rbind(returnTrainDF,data.frame(datetime = currentDateTime,season = season, 
                                                     returnMonth = toString(month(currentDateTime)),
@@ -94,7 +95,7 @@ for (i_station in 134:144){
     currentDateTime <- nextDateTime
   }
   
-  #assign(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL), rentTrainDF)
+  assign(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL), rentTrainDF)
   assign(paste("stat",toString(i_station),"_returnTrainDF",sep="",collapse = NULL), returnTrainDF)
   print(paste(toString(i_station)," Train data frame was created.", sep="", collapse = NULL))
 }

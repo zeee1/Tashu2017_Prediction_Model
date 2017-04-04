@@ -37,10 +37,10 @@ for (i_station in 1:144){
   
   rentTestDF <- data.frame(datetime = as.Date(character()),season = character(),rentMonth = character(), rentHour = character(), 
                            rentWeekday = character(), temperature = integer(), 
-                           humidity = integer(),rainfall = integer(),isFestival = character(), rentCount = integer())
+                           humidity = integer(),rainfall = integer(),isFestival = character(), RrentCount = integer(), PrentCount = integer())
   returnTestDF <- data.frame(datetime = as.Date(character()),season = character(),returnMonth = character(), returnHour = character(), 
                              returnWeekday = character(), temperature = integer(), 
-                             humidity = integer(),rainfall = integer(),isFestival = character(), returnCount = integer())
+                             humidity = integer(),rainfall = integer(),isFestival = character(), RreturnCount = integer(), PreturnCount = integer())
   
   while (currentDateTime <= endDateTime){
     nextDateTime <- currentDateTime+hours(1)
@@ -114,7 +114,7 @@ for (i_station in 1:144){
   
   # Prediction - Regression
   for (i_month in monthList){
-    locs <- get()$rentMonth == i_month
+    locs <- rentTestDF$rentMonth == i_month
     testSubSet <- rentTestDF[locs,]
     
     rentTestDF[locs,"PrentCount"] <- predict(rent_rf, extractRentFeatures(testSubSet))
@@ -125,8 +125,36 @@ for (i_station in 1:144){
     returnTestDF[locs,"PreturnCount"] <- predict(return_rf, extractReturnFeatures(testSubSet))
   }
   
+  
+  
   assign(paste("stat", toString(i_station), "_rentTestDF", sep="",collapse = NULL), rentTestDF)
   assign(paste("stat", toString(i_station), "_returnTestDF", sep="",collapse = NULL), returnTestDF)
+  
+  imp <- importance(rent_rf, type=1)
+  featureImportance <- data.frame(Feature=row.names(imp), Importance=imp[,1])
+  
+  ggplot(featureImportance, aes(x=reorder(Feature, Importance), y=Importance)) +
+    geom_bar(stat="identity", fill="#53cfff") +
+    coord_flip() + 
+    theme_light(base_size=20) +
+    xlab("Importance") +
+    ylab("") + 
+    ggtitle("Random Forest Feature Importance\n") +
+    theme(plot.title=element_text(size=18))
+  ggsave(paste("../images/sampleTest/rent/",toString(i_station),"_rentFI.png",sep="",collapse = NULL))
+  
+  imp <- importance(return_rf, type=1)
+  featureImportance <- data.frame(Feature=row.names(imp), Importance=imp[,1])
+  
+  ggplot(featureImportance, aes(x=reorder(Feature, Importance), y=Importance)) +
+    geom_bar(stat="identity", fill="#53cfff") +
+    coord_flip() + 
+    theme_light(base_size=20) +
+    xlab("Importance") +
+    ylab("") + 
+    ggtitle("Random Forest Feature Importance\n") +
+    theme(plot.title=element_text(size=18))
+  ggsave(paste("../images/sampleTest/return/",toString(i_station),"_returnFI.png",sep="",collapse = NULL))
   
   print(paste(toString(i_station)," Test/Prediction result was created."))
 }
