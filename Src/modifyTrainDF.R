@@ -4,11 +4,12 @@
 ###
 
 for(i_station in 1:144){
-  #Todo : delete data(0:00 ~ 4:00) in rentTrainDF
-  get(paste("stat",toString(i_station),"_rentTrainDF",sep = "", collapse = NULL))<-
-    get(paste("stat",toString(i_station),"_rentTrainDF",sep = "", collapse = NULL))[
-      as.numeric(get(paste("stat",toString(i_station),"_rentTrainDF",sep = "", collapse = NULL))$rentHour) > 5,]
-  
-  #Todo : delete data(0:00 ~ 4:00) in rentTestDF
+  #Todo : delete data(0:00 ~ 4:00) in i_station_rentTrainDF
+  assign(paste("stat",toString(i_station),"_rentTrainDF",sep = "", collapse = NULL),
+         get(paste("stat",toString(i_station),"_rentTrainDF",sep = "", collapse = NULL))[as.numeric(get(paste("stat",toString(i_station),"_rentTrainDF",sep = "", collapse = NULL))$rentHour) > 5,] )
+
+  #Todo : delete data(0:00 ~ 4:00) in i_station_rentTestDF
+  assign(paste("stat",toString(i_station),"_rentTestDF",sep = "", collapse = NULL),
+         get(paste("stat",toString(i_station),"_rentTestDF",sep = "", collapse = NULL))[as.numeric(get(paste("stat",toString(i_station),"_rentTestDF",sep = "", collapse = NULL))$rentHour) > 5,] )
   
 }

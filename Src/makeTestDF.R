@@ -44,56 +44,59 @@ for (i_station in 1:144){
   
   while (currentDateTime <= endDateTime){
     nextDateTime <- currentDateTime+hours(1)
-    
-    rentTimeSubset <- rentSubsetInTest[rentSubsetInTest$rentDateTime >= currentDateTime & rentSubsetInTest$rentDateTime < nextDateTime,]
-    returnTimeSubset <- returnSubsetInTest[returnSubsetInTest$returnDateTime >= currentDateTime & returnSubsetInTest$returnDateTime < nextDateTime,]
-    
-    weatherSubset <- weather2015Data[weather2015Data$DT == currentDateTime,]
-    
-    if(is.na(weatherSubset$Rainfall)){
-      weatherSubset$Rainfall <- 0
-    }
-    
-    season <- '0'
-    currentMonth <- month(currentDateTime)
-    
-    if(currentMonth >= 3 && currentMonth < 6){
-      season <- '1'#spring
-    }
-    if(currentMonth >= 6 && currentMonth < 9){
-      season <- '2'#summer
-    }
-    if(currentMonth >= 9 && currentMonth < 12){
-      season <- '3'#fall
-    }
-    if(currentMonth >= 11 || currentMonth < 3){
-      season <- '4'#winter
-    }
-    
-    isFestival <- '0'
-    tmpFestData <- festivalData[festivalData$startDate <= currentDateTime & festivalData$endDate > currentDateTime,]
-    nearStatList <- strsplit(tmpFestData$nearStation,",")
-    for (i in nearStatList){
-      if(toString(i_station) %in% i){
-        isFestival <-'1'
+    if(hour(currentDateTime) >= 5) {
+      print(hour(currentDateTime))
+      
+      rentTimeSubset <- rentSubsetInTest[rentSubsetInTest$rentDateTime >= currentDateTime & rentSubsetInTest$rentDateTime < nextDateTime,]
+      returnTimeSubset <- returnSubsetInTest[returnSubsetInTest$returnDateTime >= currentDateTime & returnSubsetInTest$returnDateTime < nextDateTime,]
+      
+      weatherSubset <- weather2015Data[weather2015Data$DT == currentDateTime,]
+      
+      if(is.na(weatherSubset$Rainfall)){
+        weatherSubset$Rainfall <- 0
       }
-    }
-    
-    rentTestDF <- rbind(rentTestDF,data.frame(datetime = currentDateTime,season = season, 
+      
+      season <- '0'
+      
+      currentMonth <- month(currentDateTime)
+      
+      if(currentMonth >= 3 && currentMonth < 6){
+        season <- '1'#spring
+      }
+      if(currentMonth >= 6 && currentMonth < 9){
+        season <- '2'#summer
+      }
+      if(currentMonth >= 9 && currentMonth < 12){
+        season <- '3'#fall
+      }
+      if(currentMonth >= 11 || currentMonth < 3){
+        season <- '4'#winter
+      }
+      
+      isFestival <- '0'
+      tmpFestData <- festivalData[festivalData$startDate <= currentDateTime & festivalData$endDate > currentDateTime,]
+      nearStatList <- strsplit(tmpFestData$nearStation,",")
+      for (i in nearStatList){
+        if(toString(i_station) %in% i){
+          isFestival <-'1'
+        }
+      }
+      
+      rentTestDF <- rbind(rentTestDF,data.frame(datetime = currentDateTime,season = season, 
                                               rentMonth = toString(month(currentDateTime)),
                                               rentHour = toString(hour(currentDateTime)),
                                               rentWeekday = wday(currentDateTime, label = TRUE),
                                               temperature = weatherSubset$Temperature,
                                               humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
                                               RrentCount = NROW(rentTimeSubset), PrentCount = NA))
-    returnTestDF <- rbind(returnTestDF,data.frame(datetime = currentDateTime,season = season, 
+      returnTestDF <- rbind(returnTestDF,data.frame(datetime = currentDateTime,season = season, 
                                                   returnMonth = toString(month(currentDateTime)),
                                                   returnHour = toString(hour(currentDateTime)),
                                                   returnWeekday = wday(currentDateTime, label = TRUE),
                                                   temperature = weatherSubset$Temperature,
                                                   humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
                                                   RreturnCount = NROW(returnTimeSubset), PreturnCount = NA))
-    
+    }
     currentDateTime <- nextDateTime
   }
   
