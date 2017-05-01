@@ -1,14 +1,8 @@
-#Visualization
 library(ggplot2)
 library(ggthemes)
 library(scales)
-
-#classification algorithm
 library(randomForest)
-
-#date time library load
 library(lubridate)
-
 library(plyr)
 library(readr)
 
@@ -25,8 +19,8 @@ extractReturnFeatures <- function(data){
   return(data[, features])
 }
 
+#Make Test DataFrame(20150101~20151231) - rentTestDF, returnTestDF
 for (i_station in 1:144){
-  #Make Test DataFrame(20150101~20151231) - rentTestDF, returnTestDF
   rentSubsetInTest <- tashu2015Data[tashu2015Data$RENT_STATION == i_station,]
   returnSubsetInTest <- tashu2015Data[tashu2015Data$RETURN_STATION == i_station,]
   
@@ -35,68 +29,90 @@ for (i_station in 1:144){
   currentDateTime <- startDateTime
   
   
-  rentTestDF <- data.frame(datetime = as.Date(character()),season = character(),rentMonth = character(), rentHour = character(), 
-                           rentWeekday = character(), temperature = integer(), 
-                           humidity = integer(),rainfall = integer(),isFestival = character(), RrentCount = integer(), PrentCount = integer())
-  returnTestDF <- data.frame(datetime = as.Date(character()),season = character(),returnMonth = character(), returnHour = character(), 
-                             returnWeekday = character(), temperature = integer(), 
-                             humidity = integer(),rainfall = integer(),isFestival = character(), RreturnCount = integer(), PreturnCount = integer())
+  rentTestDF <- data.frame(datetime = as.Date(character()),
+                           season = character(),
+                           rentMonth = character(), 
+                           rentHour = character(), 
+                           rentWeekday = character(), 
+                           temperature = integer(), 
+                           humidity = integer(),
+                           rainfall = integer(),
+                           isFestival = character(), 
+                           RrentCount = integer(), 
+                           PrentCount = integer())
+  
+  returnTestDF <- data.frame(datetime = as.Date(character()),
+                             season = character(),
+                             returnMonth = character(), 
+                             returnHour = character(), 
+                             returnWeekday = character(), 
+                             temperature = integer(), 
+                             humidity = integer(),
+                             rainfall = integer(),
+                             isFestival = character(), 
+                             RreturnCount = integer(), 
+                             PreturnCount = integer())
   
   while (currentDateTime <= endDateTime){
     nextDateTime <- currentDateTime+hours(1)
-    if(hour(currentDateTime) >= 5) {
-      print(hour(currentDateTime))
+
+    rentTimeSubset <- rentSubsetInTest[rentSubsetInTest$rentDateTime >= currentDateTime & rentSubsetInTest$rentDateTime < nextDateTime,]
+    returnTimeSubset <- returnSubsetInTest[returnSubsetInTest$returnDateTime >= currentDateTime & returnSubsetInTest$returnDateTime < nextDateTime,]
       
-      rentTimeSubset <- rentSubsetInTest[rentSubsetInTest$rentDateTime >= currentDateTime & rentSubsetInTest$rentDateTime < nextDateTime,]
-      returnTimeSubset <- returnSubsetInTest[returnSubsetInTest$returnDateTime >= currentDateTime & returnSubsetInTest$returnDateTime < nextDateTime,]
+    weatherSubset <- weather2015Data[weather2015Data$DT == currentDateTime,]
       
-      weatherSubset <- weather2015Data[weather2015Data$DT == currentDateTime,]
+    if(is.na(weatherSubset$Rainfall)){
+      weatherSubset$Rainfall <- 0
+    }
       
-      if(is.na(weatherSubset$Rainfall)){
-        weatherSubset$Rainfall <- 0
+    season <- '0'
+      
+    currentMonth <- month(currentDateTime)
+      
+    if(currentMonth >= 3 && currentMonth < 6){
+      season <- '1'#spring
+    }
+    if(currentMonth >= 6 && currentMonth < 9){
+      season <- '2'#summer
+    }
+    if(currentMonth >= 9 && currentMonth < 12){
+      season <- '3'#fall
+    }
+    if(currentMonth >= 11 || currentMonth < 3){
+      season <- '4'#winter
+    }
+      
+    isFestival <- '0'
+    tmpFestData <- festivalData[festivalData$startDate <= currentDateTime & festivalData$endDate > currentDateTime,]
+    nearStatList <- strsplit(tmpFestData$nearStation,",")
+    for (i in nearStatList){
+      if(toString(i_station) %in% i){
+        isFestival <-'1'
       }
+    }
       
-      season <- '0'
-      
-      currentMonth <- month(currentDateTime)
-      
-      if(currentMonth >= 3 && currentMonth < 6){
-        season <- '1'#spring
-      }
-      if(currentMonth >= 6 && currentMonth < 9){
-        season <- '2'#summer
-      }
-      if(currentMonth >= 9 && currentMonth < 12){
-        season <- '3'#fall
-      }
-      if(currentMonth >= 11 || currentMonth < 3){
-        season <- '4'#winter
-      }
-      
-      isFestival <- '0'
-      tmpFestData <- festivalData[festivalData$startDate <= currentDateTime & festivalData$endDate > currentDateTime,]
-      nearStatList <- strsplit(tmpFestData$nearStation,",")
-      for (i in nearStatList){
-        if(toString(i_station) %in% i){
-          isFestival <-'1'
-        }
-      }
-      
-      rentTestDF <- rbind(rentTestDF,data.frame(datetime = currentDateTime,season = season, 
+    rentTestDF <- rbind(rentTestDF,data.frame(datetime = currentDateTime,season = season, 
                                               rentMonth = toString(month(currentDateTime)),
                                               rentHour = toString(hour(currentDateTime)),
                                               rentWeekday = wday(currentDateTime, label = TRUE),
                                               temperature = weatherSubset$Temperature,
-                                              humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
-                                              RrentCount = NROW(rentTimeSubset), PrentCount = NA))
-      returnTestDF <- rbind(returnTestDF,data.frame(datetime = currentDateTime,season = season, 
+                                              humidity= weatherSubset$Humidity,
+                                              rainfall = weatherSubset$Rainfall,
+                                              isFestival = isFestival,
+                                              RrentCount = NROW(rentTimeSubset), 
+                                              PrentCount = NA))
+      
+    returnTestDF <- rbind(returnTestDF,data.frame(datetime = currentDateTime,season = season, 
                                                   returnMonth = toString(month(currentDateTime)),
                                                   returnHour = toString(hour(currentDateTime)),
                                                   returnWeekday = wday(currentDateTime, label = TRUE),
                                                   temperature = weatherSubset$Temperature,
-                                                  humidity= weatherSubset$Humidity,rainfall = weatherSubset$Rainfall,isFestival = isFestival,
-                                                  RreturnCount = NROW(returnTimeSubset), PreturnCount = NA))
-    }
+                                                  humidity= weatherSubset$Humidity,
+                                                  rainfall = weatherSubset$Rainfall,
+                                                  isFestival = isFestival,
+                                                  RreturnCount = NROW(returnTimeSubset), 
+                                                  PreturnCount = NA))
+
     currentDateTime <- nextDateTime
   }
   
@@ -104,16 +120,18 @@ for (i_station in 1:144){
   monthList <- unique(rentTestDF$rentMonth)
   monthList <- monthList[!is.na(monthList)]
   
-  if(length(levels(rentTestDF$isFestival)) == 1 | length(levels(returnTestDF$isFestival))==1){
+  if(length(levels(rentTestDF$isFestival)) == 1 | length(levels(returnTestDF$isFestival))== 1){
     levels(rentTestDF$isFestival) <- levels(get(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL))$isFestival)
     levels(returnTestDF$isFestival) <- levels(get(paste("stat",toString(i_station),"_returnTrainDF",sep="",collapse = NULL))$isFestival)
   }
   
   rent_rf <- randomForest(extractRentFeatures(get(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL))),
-                          get(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL))$rentCount, ntree = 50, mtry = 2, importance = TRUE)
+                          get(paste("stat",toString(i_station),"_rentTrainDF",sep="",collapse = NULL))$rentCount, 
+                          ntree = 50, mtry = 2, importance = TRUE)
   
   return_rf <- randomForest(extractReturnFeatures(get(paste("stat",toString(i_station),"_returnTrainDF",sep="",collapse = NULL))),
-                            get(paste("stat",toString(i_station),"_returnTrainDF",sep="",collapse = NULL))$returnCount, ntree = 50, mtry = 2, importance = TRUE)
+                            get(paste("stat",toString(i_station),"_returnTrainDF",sep="",collapse = NULL))$returnCount, 
+                            ntree = 50, mtry = 2, importance = TRUE)
   
   # Prediction - Regression
   for (i_month in monthList){
@@ -127,8 +145,6 @@ for (i_station in 1:144){
     
     returnTestDF[locs,"PreturnCount"] <- predict(return_rf, extractReturnFeatures(testSubSet))
   }
-  
-  
   
   assign(paste("stat", toString(i_station), "_rentTestDF", sep="",collapse = NULL), rentTestDF)
   assign(paste("stat", toString(i_station), "_returnTestDF", sep="",collapse = NULL), returnTestDF)

@@ -1,20 +1,12 @@
-#Visualization
-library(ggplot2)
-library(ggthemes)
 library(scales)
-
-#classification algorithm
 library(randomForest)
-
-#date time library load
 library(lubridate)
-
 library(plyr)
 library(readr)
 
+#Make Train DataFrame(20130101~20141231) : rentTrainDF, returnTrainDF
 
-for (i_station in 134:144){
-  #Make Train DataFrame(20130101~20141231) : rentTrainDF, returnTrainDF
+for (i_station in 1:144){
   rentSubsetInTrain <- tashu20132014Data[tashu20132014Data$RENT_STATION == i_station,]
   returnSubsetInTrain <- tashu20132014Data[tashu20132014Data$RETURN_STATION == i_station,]
   
@@ -22,14 +14,26 @@ for (i_station in 134:144){
   endDateTime <- ymd_hms(20141231230000)
   currentDateTime <- startDateTime
   
-  rentTrainDF <- data.frame(datetime = as.Date(character()),season = character(), 
-                            rentMonth = character(), rentHour = character(),rentWeekday = character(),
-                            temperature = integer(),humidity = integer(),rainfall = integer(),isFestival = character(),
+  rentTrainDF <- data.frame(datetime = as.Date(character()),
+                            season = character(), 
+                            rentMonth = character(), 
+                            rentHour = character(),
+                            rentWeekday = character(),
+                            temperature = integer(),
+                            humidity = integer(),
+                            rainfall = integer(),
+                            isFestival = character(),
                             rentCount = integer())
   
-  returnTrainDF <- data.frame(datetime = as.Date(character()),season = character(), 
-                              returnMonth = character(),returnHour = character(),returnWeekday = character(),isFestival = character(), 
-                              temperature = integer(), humidity = integer(),rainfall = integer(), 
+  returnTrainDF <- data.frame(datetime = as.Date(character()),
+                              season = character(), 
+                              returnMonth = character(),
+                              returnHour = character(),
+                              returnWeekday = character(),
+                              isFestival = character(), 
+                              temperature = integer(), 
+                              humidity = integer(),
+                              rainfall = integer(), 
                               returnCount = integer())
   
   while (currentDateTime <= endDateTime){
@@ -39,13 +43,13 @@ for (i_station in 134:144){
     returnTimeSubset <- returnSubsetInTrain[returnSubsetInTrain$returnDateTime >= currentDateTime & returnSubsetInTrain$returnDateTime < nextDateTime,]
     
     weatherSubset <- data.frame()
+    
     if (year(currentDateTime) == 2013){
       weatherSubset <- weather2013Data[weather2013Data$DT == currentDateTime,]
     }
     if (year(currentDateTime) == 2014){
       weatherSubset <- weather2014Data[weather2014Data$DT == currentDateTime,]
     }
-    
     
     if(is.na(weatherSubset$Rainfall)){
       weatherSubset$Rainfall <- 0
