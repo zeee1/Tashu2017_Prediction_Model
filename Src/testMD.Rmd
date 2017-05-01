@@ -1,0 +1,30 @@
+---
+title: "Demand Forecast for Public Bicycles ('Tashu') in Daejeon using Random Forest"
+author: "JiwonMin"
+date: "2017-05-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##1. Introduction
+ Major cities in the world are operating unmanned bicycle rental systems as green public transportation, and are spreading around the world. South Korea's Daejeon City also operates a public bicycle system called 'Tashu' from 2012 for the purpose of increasing the momentum of citizens and distributing demand for public transportation. As the system grows, the size and importance of relocation work is growing. In order to increase the work efficiency, we implemented a model that predicts the amount of demand according to time, climate condition, and festival status at some stopping points by using machine learning algorithm.
+ 
+ 세계 주요 도시는 녹색대중교통 수단으로 무인 자전거 대여 시스템을 운영하며, 이는 전세계적으로 확산되고 있다. 남한의 대전시 또한 시민들의 운동량 증대, 대중 교통 수요 분산 등을 목적으로 2012년부터 '타슈'라는 공공 자전거 시스템을 운영하고 있다. 시스템이 점차 확대되며 재배치 작업의 규모와 중요성이 커지고 있다. 작업 효율을 높이기 위해 기계 학습 알고리즘을 이용해서 일부 정류소의 시간, 기후 상태, 축제 여부 등에 따른 수요량을 예측하는 모델을 구현하였다.
+ 
+##2. Data 
+```{r cars}
+summary(cars)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
